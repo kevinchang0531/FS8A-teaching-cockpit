@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FS9A SAT 教學駕駛艙</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#1C3A1C;--bg2:#254525;--bg3:#2E5E2E;--border:#3A6A3A;
+  --white:#FFFFFF;--dim:#C8C8C8;
+  --yellow:#F5E642;--blue:#A8D8EA;--orange:#FFB347;--green:#98FB98;--red:#FF6B6B;
+  --impact:'Impact','Arial Narrow',sans-serif;
+  --body:'Segoe UI',Calibri,sans-serif;
+}
+body{font-family:var(--body);background:var(--bg);color:var(--white);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HEADER ── */
+header{height:54px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:12px;z-index:100;flex-shrink:0}
+.hdr-title{font-family:var(--impact);font-size:20px;color:var(--yellow);letter-spacing:1px;white-space:nowrap}
+.hdr-title small{font-family:var(--body);font-size:11px;color:var(--dim);font-weight:normal;margin-left:6px}
+.hdr-spacer{flex:1}
+.mode-toggle{display:flex;background:var(--bg3);border-radius:20px;padding:3px;gap:2px}
+.mode-btn{padding:5px 14px;border-radius:17px;border:none;cursor:pointer;font-size:12px;font-weight:bold;transition:all .2s;background:transparent;color:var(--dim)}
+.mode-btn.active{background:var(--yellow);color:var(--bg)}
+.mode-badge{font-size:11px;padding:3px 10px;border-radius:10px;background:var(--bg3);color:var(--dim);white-space:nowrap}
+body.teacher .mode-badge{background:rgba(245,230,66,.12);color:var(--yellow);border:1px solid var(--yellow)}
+
+/* ── LAYOUT ── */
+.main-layout{flex:1;display:flex;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:190px;background:var(--bg2);border-right:2px solid var(--border);display:flex;flex-direction:column;padding:10px 6px;gap:5px;flex-shrink:0;overflow-y:auto}
+.sidebar-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;padding:4px 6px 8px;border-bottom:1px dashed var(--border);margin-bottom:2px}
+.topic-btn{background:transparent;border:1.5px solid var(--border);border-radius:8px;color:var(--white);padding:9px 8px;cursor:pointer;text-align:left;transition:all .2s;width:100%}
+.topic-btn:hover{background:var(--bg3);border-color:var(--white)}
+.topic-btn.active{border-color:var(--yellow);background:rgba(245,230,66,.08)}
+.topic-btn .num{font-family:var(--impact);font-size:18px;color:var(--yellow);display:block;line-height:1;margin-bottom:3px}
+.topic-btn .name{display:block;font-size:13px;font-weight:bold}
+.topic-btn .sub{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+
+/* ── CONTENT ── */
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.tab-bar{height:44px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:flex-end;padding:0 14px;gap:3px;flex-shrink:0}
+.tab-btn{padding:7px 16px;border:1.5px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:transparent;color:var(--dim);cursor:pointer;font-size:12px;font-weight:bold;transition:all .2s}
+.tab-btn:hover{background:var(--bg3);color:var(--white)}
+.tab-btn.active{background:var(--bg);color:var(--yellow);border-color:var(--yellow)}
+.panel-area{flex:1;position:relative;overflow:hidden}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:18px;display:none;background:var(--bg)}
+.panel.active{display:block;animation:fade-in .2s ease}
+#panel-carousel.active{display:flex;flex-direction:column;padding:6px;overflow:hidden}
+@keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+body.teacher .panel{padding-right:264px}
+body.teacher #panel-carousel.active{padding-right:270px}
+
+/* ── CAROUSEL ── */
+.carousel{display:flex;flex-direction:column;height:100%;gap:6px}
+.slide-frame{flex:1;min-height:0;width:100%;background:#000;border:2px solid var(--border);border-radius:4px;overflow:hidden}
+.slide-frame img{width:100%;height:100%;object-fit:contain;display:block}
+.car-controls{display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0}
+.car-btn{background:var(--bg2);border:2px solid var(--border);color:var(--white);width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.car-btn:hover:not(:disabled){border-color:var(--yellow);color:var(--yellow)}
+.car-btn:disabled{opacity:.3;cursor:not-allowed}
+.slide-counter{font-family:var(--impact);font-size:17px;color:var(--yellow);min-width:70px;text-align:center}
+.thumbs{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;flex-shrink:0;justify-content:flex-start}
+.thumbs::-webkit-scrollbar{height:3px}
+.thumb{width:64px;height:36px;flex-shrink:0;border:2px solid var(--border);border-radius:3px;cursor:pointer;object-fit:cover;opacity:.55;transition:all .2s}
+.thumb:hover{opacity:.9;border-color:var(--white)}
+.thumb.active{opacity:1;border-color:var(--yellow)}
+
+/* ── QUIZ ── */
+.quiz-wrap{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.q-card{background:var(--bg2);border:2px solid var(--border);border-radius:8px;padding:18px}
+.q-text{font-size:15px;font-weight:bold;margin-bottom:14px;line-height:1.5;color:var(--yellow)}
+.q-num{background:var(--yellow);color:var(--bg);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;margin-right:7px;font-family:var(--impact)}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.opt{background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--white);padding:9px 12px;cursor:pointer;text-align:left;font-size:13px;transition:all .2s;display:flex;align-items:center;gap:7px}
+.opt:hover:not(.locked){border-color:var(--blue);background:rgba(168,216,234,.1)}
+.opt.correct{border-color:var(--green)!important;background:rgba(152,251,152,.15)!important;color:var(--green)}
+.opt.wrong{border-color:var(--red)!important;background:rgba(255,107,107,.1)!important;color:var(--dim)}
+.opt.picked-ok{border-color:var(--green)!important;background:rgba(152,251,152,.25)!important;font-weight:bold}
+.opt.picked-bad{border-color:var(--red)!important;background:rgba(255,107,107,.2)!important;font-weight:bold}
+.opt-l{font-family:var(--impact);font-size:15px;min-width:18px}
+.q-fb{margin-top:10px;padding:9px 12px;border-radius:6px;font-size:12px;display:none}
+.q-fb.show{display:block}
+.q-fb.ok{background:rgba(152,251,152,.08);color:var(--green);border:1px solid var(--green)}
+.q-fb.bad{background:rgba(255,107,107,.08);color:var(--red);border:1px solid var(--red)}
+.q-reset{margin-top:7px;background:transparent;border:1px dashed var(--border);color:var(--dim);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px}
+.q-reset:hover{border-color:var(--white);color:var(--white)}
+.quiz-score{background:var(--bg2);border:2px solid var(--yellow);border-radius:8px;padding:16px;text-align:center;margin-top:4px}
+.quiz-score .score-big{font-family:var(--impact);font-size:42px;color:var(--yellow)}
+.quiz-score .score-lbl{font-size:13px;color:var(--dim);margin-top:4px}
+
+/* ── VIDEO ── */
+.video-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.yt-frame-wrap{width:100%;max-width:960px;aspect-ratio:16/9;border:2px solid var(--border);border-radius:6px;overflow:hidden;background:#000}
+.yt-frame-wrap iframe{width:100%;height:100%;border:none;display:block}
+.video-title{font-family:var(--impact);font-size:16px;color:var(--blue);letter-spacing:.5px}
+.video-placeholder{width:100%;max-width:960px;aspect-ratio:16/9;border:2px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--dim)}
+.video-placeholder .vp-icon{font-size:48px}
+.video-placeholder .vp-txt{font-size:13px}
+
+/* ── INFOGRAPHIC ── */
+.info-wrap{display:flex;justify-content:center}
+.info-wrap img{max-width:100%;border:2px solid var(--border);border-radius:4px}
+
+/* ── RIGHT FLOAT PANEL ── */
+.float-panel{position:fixed;right:10px;top:64px;width:246px;display:flex;flex-direction:column;gap:7px;z-index:600}
+body.student .float-panel{display:none}
+.tool-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.tool-hdr{background:var(--bg3);padding:7px 11px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;font-weight:bold;user-select:none}
+.tool-hdr:hover{background:var(--border)}
+.tool-hdr .icon{font-size:14px;margin-right:5px}
+.tool-hdr .chevron{transition:transform .2s;font-size:10px}
+.tool-card.collapsed .chevron{transform:rotate(-90deg)}
+.tool-body{padding:10px}
+.tool-card.collapsed .tool-body{display:none}
+
+/* Timer */
+.timer-disp{font-family:var(--impact);font-size:38px;color:var(--yellow);text-align:center;padding:6px 0;letter-spacing:3px}
+.timer-disp.urgent{color:var(--red);animation:blink .5s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.presets{display:flex;gap:3px;margin-bottom:7px;flex-wrap:wrap}
+.preset{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:4px 2px;font-size:10px;cursor:pointer;white-space:nowrap}
+.preset:hover{border-color:var(--yellow)}
+.t-btns{display:flex;gap:3px}
+.t-btn{flex:1;padding:6px 3px;border-radius:4px;border:1px solid var(--border);color:var(--white);font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3)}
+.t-btn.go{border-color:var(--green);color:var(--green)}
+.t-btn.stop{border-color:var(--orange);color:var(--orange)}
+.t-btn.rst{border-color:var(--dim);color:var(--dim)}
+.t-btn:hover{background:var(--border)}
+
+/* Drawing */
+.draw-colors{display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;align-items:center}
+.swatch{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;flex-shrink:0}
+.swatch.active{border-color:var(--white);transform:scale(1.2)}
+.draw-sizes{display:flex;gap:3px;margin-bottom:7px}
+.sz-btn{background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px;flex:1}
+.sz-btn.active{border-color:var(--yellow);color:var(--yellow)}
+.draw-acts{display:flex;gap:3px}
+.draw-act{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:5px 3px;cursor:pointer;font-size:10px;text-align:center}
+.draw-act.on{border-color:var(--green);background:rgba(152,251,152,.1);color:var(--green)}
+.draw-act.erase{border-color:var(--orange)}
+.draw-act.clr{border-color:var(--red)}
+.draw-act:hover{border-color:var(--white)}
+
+/* Canvas */
+#cvs{position:fixed;inset:0;z-index:500;display:none;cursor:none;pointer-events:none}
+#cvs.on{display:block;pointer-events:all}
+.cursor-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.7);position:fixed;pointer-events:none;z-index:600;transform:translate(-50%,-50%);display:none}
+#cvs.on~.cursor-dot{display:block}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body class="teacher">
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <span class="hdr-title">📡 FS9A SAT 教學駕駛艙 <small>系統驗收測試訓練</small></span>
+  <span class="hdr-spacer"></span>
+  <span class="mode-badge" id="modeBadge">🎓 教師模式</span>
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="setMode('teacher')">👩‍🏫 教師</button>
+    <button class="mode-btn" onclick="setMode('student')">🧑‍💻 學生</button>
+  </div>
+</header>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<div class="main-layout">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sidebar-lbl">📚 教學重點</div>
+    <button class="topic-btn active" onclick="selectTopic(0)">
+      <span class="num">01</span>
+      <span class="name">任務概述</span>
+      <span class="sub">系統架構 · 三大區段</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(1)">
+      <span class="num">02</span>
+      <span class="name">性能規格</span>
+      <span class="sub">SAR模式 · 操作模式</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(2)">
+      <span class="num">03</span>
+      <span class="name">SOCC次系統</span>
+      <span class="sub">MOC · MCC · FDF · DCC</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(3)">
+      <span class="num">04</span>
+      <span class="name">介面與SAT</span>
+      <span class="sub">S/X頻段 · IADT驗收</span>
+    </button>
+  </div>
+
+  <!-- ── CONTENT AREA ── -->
+  <div class="content-area">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="selectTab('carousel')">📽 簡報輪播</button>
+      <button class="tab-btn" onclick="selectTab('quiz')">✏️ 互動評量</button>
+      <button class="tab-btn" onclick="selectTab('info')">🖼 資訊圖表</button>
+      <button class="tab-btn" onclick="selectTab('video')">▶ 影片</button>
+    </div>
+    <div class="panel-area">
+
+      <!-- CAROUSEL PANEL -->
+      <div class="panel active" id="panel-carousel">
+        <div class="carousel">
+          <div class="slide-frame">
+            <img id="slideImg" src="" alt="slide">
+          </div>
+          <div class="car-controls">
+            <button class="car-btn" id="btnPrev" onclick="changeSlide(-1)">◀</button>
+            <span class="slide-counter" id="slideCounter">1 / 3</span>
+            <button class="car-btn" id="btnNext" onclick="changeSlide(1)">▶</button>
+          </div>
+          <div class="thumbs" id="thumbsContainer"></div>
+        </div>
+      </div>
+
+      <!-- QUIZ PANEL -->
+      <div class="panel" id="panel-quiz">
+        <div class="quiz-wrap" id="quizContainer"></div>
+      </div>
+
+      <!-- VIDEO PANEL -->
+      <div class="panel" id="panel-video">
+        <div class="video-wrap">
+          <div class="video-placeholder">
+            <span class="vp-icon">📡</span>
+            <span class="vp-txt">FS9A SAT 教學影片連結待補</span>
+            <span class="vp-txt" style="font-size:11px;margin-top:4px">請聯繫操控組提供影片連結</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- INFOGRAPHIC PANEL -->
+      <div class="panel" id="panel-info">
+        <div class="info-wrap">
+          <img id="infoImg" src="" alt="infographic">
+        </div>
+      </div>
+
+    </div><!-- panel-area -->
+  </div><!-- content-area -->
+</div><!-- main-layout -->
+
+<!-- ════════════════ FLOAT PANEL ════════════════ -->
+<div class="float-panel">
+
+  <!-- ⏱ 計時器 -->
+  <div class="tool-card" id="cardTimer">
+    <div class="tool-hdr" onclick="toggleCard('cardTimer')">
+      <span><span class="icon">⏱</span>計時器</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <div class="timer-disp" id="timerDisp">05:00</div>
+      <div class="presets">
+        <button class="preset" onclick="setTimer(60)">1分</button>
+        <button class="preset" onclick="setTimer(180)">3分</button>
+        <button class="preset" onclick="setTimer(300)">5分</button>
+        <button class="preset" onclick="setTimer(600)">10分</button>
+      </div>
+      <div class="t-btns">
+        <button class="t-btn go" onclick="startTimer()">▶ 開始</button>
+        <button class="t-btn stop" onclick="pauseTimer()">⏸ 暫停</button>
+        <button class="t-btn rst" onclick="resetTimer()">↺ 重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✏️ 畫筆 -->
+  <div class="tool-card" id="cardDraw">
+    <div class="tool-hdr" onclick="toggleCard('cardDraw')">
+      <span><span class="icon">✏️</span>粉筆畫筆</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <div class="draw-colors" id="colorPicker">
+        <span class="swatch active" style="background:#FFFFFF" data-color="#FFFFFF" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#F5E642" data-color="#F5E642" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#A8D8EA" data-color="#A8D8EA" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#FFB347" data-color="#FFB347" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#98FB98" data-color="#98FB98" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#FF6B6B" data-color="#FF6B6B" onclick="setColor(this)"></span>
+      </div>
+      <div class="draw-sizes">
+        <button class="sz-btn" data-sz="3" onclick="setSize(this)">細</button>
+        <button class="sz-btn active" data-sz="6" onclick="setSize(this)">中</button>
+        <button class="sz-btn" data-sz="12" onclick="setSize(this)">粗</button>
+        <button class="sz-btn" data-sz="24" onclick="setSize(this)">超粗</button>
+      </div>
+      <div class="draw-acts">
+        <button class="draw-act" id="btnDraw" onclick="toggleDraw()">🖊 開啟</button>
+        <button class="draw-act erase" id="btnErase" onclick="toggleErase()">橡皮擦</button>
+        <button class="draw-act clr" onclick="clearCanvas()">清除</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- float-panel -->
+
+<!-- ════════════════ CANVAS OVERLAY ════════════════ -->
+<canvas id="cvs"></canvas>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  BASE URL — works for both file:// and HTTP
+// ════════════════════════════════════════════
+const BASE = (() => {
+  const href = window.location.href;
+  if (href.startsWith('file://')) return href.replace(/[^/\\]*$/, '');
+  return '';
+})();
+
+function imgSrc(filename) { return BASE + filename; }
+
+// ════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════
+const TOPICS = [
+  {
+    label:'任務概述',
+    slides:[1,2,3],
+    infographic:'infographic_01_mission_overview_20260513_204842.png',
+    quiz:[
+      { q:'FS9A 主要任務酬載 XPAA 的操作頻率為何？',
+        opts:['2.2 GHz（S頻段）','5.4 GHz（C頻段）','9.65 GHz（X頻段）','14.5 GHz（Ku頻段）'],
+        ans:2,
+        fb:'✅ 正確！X頻段中心頻率 9.65 GHz，X-Band SAR 為 FS9A 核心任務酬載（XPAA）。' },
+      { q:'FS9A 運行的軌道類型與高度為？',
+        opts:['GEO 靜止軌道，36,000 km','太陽同步軌道 SSO，514 km','低地軌道 LEO，400 km','中地軌道 MEO，2,000 km'],
+        ans:1,
+        fb:'✅ 正確！SSO 太陽同步軌道確保衛星每次過境台灣時太陽角度一致，有利觀測條件穩定，高度 514 km，軌道傾角 97.46°。' },
+      { q:'下列何者不屬於 SOCS（衛星操控系統）的組成？',
+        opts:['任務操作中心 MOC','飛行動態設施 FDF','地面通訊網路 GCN','影像處理系統 IPS'],
+        ans:3,
+        fb:'✅ 正確！IPS（影像處理系統）屬於地面段，但不屬於 SOCS。SOCS = SOCC + TT&C + FDF + MCC + DCC + GCN。' }
+    ]
+  },
+  {
+    label:'性能規格',
+    slides:[4,5,6],
+    infographic:'infographic_02_performance_specs_20260513_204922.png',
+    quiz:[
+      { q:'FS9A SAR 最高可達幾公尺空間解析度？',
+        opts:['0.5 m','1 m','3 m','10 m'],
+        ans:1,
+        fb:'✅ 正確！Spotlight 模式最高解析度達 1 m（SRD 規範 0.7 m），適用偵察與安全應用。' },
+      { q:'衛星正常模式（Normal Mode）姿態指向精度需求為？',
+        opts:['優於 0.03°','優於 0.3°','優於 1°','優於 5°'],
+        ans:0,
+        fb:'✅ 正確！0.03° 是高精度 SAR 衛星必要條件，確保影像幾何精度滿足 <50m 絕對定位需求。' },
+      { q:'發射後初始捕獲與應急保持使用哪種衛星操作模式？',
+        opts:['Ground Mode（地面測試）','ASH Mode（捕獲安全保持）','Normal Mode（正常操作）','OCM Mode（軌道控制）'],
+        ans:1,
+        fb:'✅ 正確！ASH（Acquisition and Safe Hold）Mode 用於發射後初始捕獲，可確保衛星在通訊建立前維持安全姿態。' }
+    ]
+  },
+  {
+    label:'SOCC次系統',
+    slides:[7,8,9],
+    infographic:'infographic_03_socc_subsystems_20260513_205031.png',
+    quiz:[
+      { q:'哪個次系統負責衛星活動時程規劃並產生指令上鏈包（Command Load Package）？',
+        opts:['MOC 任務操作中心','MCC 任務控制中心','FDF 飛行動態設施','DCC 資料控制中心'],
+        ans:1,
+        fb:'✅ 正確！MCC（Mission Control Center）負責 Scheduling 排程及 Command Load Package 產生，解決時程衝突。' },
+      { q:'FDF 使用何種商用軟體進行軌道判定（Orbit Determination）？',
+        opts:['MATLAB Aerospace Toolbox','GMAT（NASA）','OASYS','STK Astrogator'],
+        ans:2,
+        fb:'✅ 正確！FDF 使用商用軟體 OASYS 分析 GNSS 數據與天線追蹤數據，進行軌道判定與預測。' },
+      { q:'正常操作下，SOCC 最長多少小時內須至少上傳一次指令至衛星（SOCSRD 00520）？',
+        opts:['12 小時','24 小時','48 小時','72 小時'],
+        ans:2,
+        fb:'✅ 正確！SOCSRD 00520 要求：正常操作下至少每 48 小時上傳一次指令，確保衛星狀態受控。' }
+    ]
+  },
+  {
+    label:'介面與SAT',
+    slides:[10,11,12],
+    infographic:'infographic_04_interface_sat_20260513_205122.png',
+    quiz:[
+      { q:'S 頻段遙傳（TM）下鏈最高資料傳輸速率為？',
+        opts:['250 kbps','1 Mbps','2 Mbps','50 Mbps'],
+        ans:2,
+        fb:'✅ 正確！S 頻段遙傳有 50 kbps / 250 kbps / 2 Mbps 三種速率，最高 2 Mbps，採 CCSDS Reed-Solomon 編碼。' },
+      { q:'X 頻段相位陣列天線（XPAA）SAR 影像下鏈最高速率為？',
+        opts:['100 Mbps','300 Mbps','600 Mbps','800 Mbps'],
+        ans:3,
+        fb:'✅ 正確！XPAA 下鏈最高 800 Mbps，傳統 X-band 天線為 600 Mbps，採 LDPC 編碼確保 BER ≤ 10⁻⁹。' },
+      { q:'SAT 驗收測試方法 IADT 中，"aa" 代表何種驗證方式？',
+        opts:['Acceptance（驗收）','Analysis（分析）','Audit（稽核）','Approval（批准）'],
+        ans:1,
+        fb:'✅ 正確！IADT = Inspection(ii) / Analysis(aa) / Demonstration(dd) / Test(tt)，四種互補驗證準則涵蓋系統所有需求。' }
+    ]
+  }
+];
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let currentTopic = 0;
+let currentSlideIdx = 0;
+let currentTab = 'carousel';
+let quizState = {};
+let drawActive = false;
+let eraseMode = false;
+let drawColor = '#FFFFFF';
+let drawSize = 6;
+let painting = false;
+let lastX = 0, lastY = 0;
+let timerSec = 300;
+let timerRemain = 300;
+let timerInterval = null;
+
+// ════════════════════════════════════════════
+//  MODE
+// ════════════════════════════════════════════
+function setMode(m) {
+  document.body.className = m;
+  document.getElementById('modeBadge').textContent = m === 'teacher' ? '🎓 教師模式' : '🧑‍💻 學生模式';
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&m==='teacher')||(i===1&&m==='student')));
+  if (drawActive && m === 'student') toggleDraw();
+}
+
+// ════════════════════════════════════════════
+//  TOPICS & TABS
+// ════════════════════════════════════════════
+function selectTopic(idx) {
+  currentTopic = idx;
+  currentSlideIdx = 0;
+  document.querySelectorAll('.topic-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  updateCarousel();
+  updateInfographic();
+  renderQuiz();
+  selectTab(currentTab);
+}
+
+function selectTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick="selectTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// ════════════════════════════════════════════
+//  CAROUSEL
+// ════════════════════════════════════════════
+function updateCarousel() {
+  const t = TOPICS[currentTopic];
+  const slides = t.slides;
+  const si = currentSlideIdx;
+
+  document.getElementById('slideImg').src = imgSrc(`slide_${String(slides[si]).padStart(2,'0')}.png`);
+  document.getElementById('slideCounter').textContent = `${si+1} / ${slides.length}`;
+  document.getElementById('btnPrev').disabled = si === 0;
+  document.getElementById('btnNext').disabled = si === slides.length - 1;
+
+  const tc = document.getElementById('thumbsContainer');
+  tc.innerHTML = '';
+  slides.forEach((sNum, i) => {
+    const img = document.createElement('img');
+    img.className = 'thumb' + (i === si ? ' active' : '');
+    img.src = imgSrc(`slide_${String(sNum).padStart(2,'0')}.png`);
+    img.onclick = () => { currentSlideIdx = i; updateCarousel(); };
+    tc.appendChild(img);
+  });
+}
+
+function changeSlide(dir) {
+  const t = TOPICS[currentTopic];
+  currentSlideIdx = Math.max(0, Math.min(t.slides.length - 1, currentSlideIdx + dir));
+  updateCarousel();
+}
+
+document.addEventListener('keydown', e => {
+  if (drawActive) return;
+  if (currentTab === 'carousel') {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  }
+});
+
+// ════════════════════════════════════════════
+//  INFOGRAPHIC
+// ════════════════════════════════════════════
+function updateInfographic() {
+  document.getElementById('infoImg').src = imgSrc(TOPICS[currentTopic].infographic);
+}
+
+// ════════════════════════════════════════════
+//  QUIZ
+// ════════════════════════════════════════════
+function renderQuiz() {
+  const t = TOPICS[currentTopic];
+  const container = document.getElementById('quizContainer');
+  container.innerHTML = '';
+
+  if (!quizState[currentTopic]) quizState[currentTopic] = Array(t.quiz.length).fill(null);
+
+  t.quiz.forEach((q, qi) => {
+    const answered = quizState[currentTopic][qi];
+    const card = document.createElement('div');
+    card.className = 'q-card';
+
+    const letters = ['A','B','C','D'];
+    let optsHtml = q.opts.map((o, oi) => {
+      let cls = 'opt';
+      if (answered !== null) {
+        cls += ' locked';
+        if (oi === q.ans) cls += ' correct';
+        else if (oi === answered) cls += ' picked-bad';
+        else cls += ' wrong';
+      }
+      return `<button class="${cls}" onclick="answerQ(${currentTopic},${qi},${oi})">
+        <span class="opt-l">${letters[oi]}</span>${o}
+      </button>`;
+    }).join('');
+
+    let fbCls = 'q-fb', fbTxt = '';
+    if (answered !== null) {
+      if (answered === q.ans) { fbCls += ' ok show'; fbTxt = q.fb; }
+      else { fbCls += ' bad show'; fbTxt = `❌ 答案是 ${letters[q.ans]}：${q.opts[q.ans]}`; }
+    }
+
+    card.innerHTML = `
+      <div class="q-text"><span class="q-num">${qi+1}</span>${q.q}</div>
+      <div class="q-opts">${optsHtml}</div>
+      <div class="${fbCls}">${fbTxt}</div>
+      ${answered!==null ? `<button class="q-reset" onclick="resetQ(${currentTopic},${qi})">重置此題</button>` : ''}
+    `;
+    container.appendChild(card);
+  });
+
+  const all = quizState[currentTopic];
+  if (all.every(a => a !== null)) {
+    const score = all.filter((a,i) => a === t.quiz[i].ans).length;
+    const div = document.createElement('div');
+    div.className = 'quiz-score';
+    div.innerHTML = `<div class="score-big">${score} / ${t.quiz.length}</div>
+      <div class="score-lbl">本章節答對題數</div>`;
+    container.appendChild(div);
+  }
+}
+
+function answerQ(ti, qi, chosen) {
+  if (quizState[ti][qi] !== null) return;
+  quizState[ti][qi] = chosen;
+  renderQuiz();
+}
+
+function resetQ(ti, qi) {
+  quizState[ti][qi] = null;
+  renderQuiz();
+}
+
+// ════════════════════════════════════════════
+//  TOOL CARDS
+// ════════════════════════════════════════════
+function toggleCard(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ════════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════════
+function fmtTime(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function setTimer(sec) {
+  pauseTimer();
+  timerSec = sec;
+  timerRemain = sec;
+  const d = document.getElementById('timerDisp');
+  d.textContent = fmtTime(timerRemain);
+  d.classList.remove('urgent');
+}
+
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timerRemain--;
+    const d = document.getElementById('timerDisp');
+    d.textContent = fmtTime(timerRemain);
+    if (timerRemain <= 10) d.classList.add('urgent');
+    if (timerRemain <= 0) { clearInterval(timerInterval); timerInterval = null; }
+  }, 1000);
+}
+
+function pauseTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerRemain = timerSec;
+  const d = document.getElementById('timerDisp');
+  d.textContent = fmtTime(timerRemain);
+  d.classList.remove('urgent');
+}
+
+// ════════════════════════════════════════════
+//  DRAWING
+// ════════════════════════════════════════════
+const canvas = document.getElementById('cvs');
+const ctx = canvas.getContext('2d');
+const dot = document.getElementById('cursorDot');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function toggleDraw() {
+  drawActive = !drawActive;
+  eraseMode = false;
+  canvas.classList.toggle('on', drawActive);
+  document.getElementById('btnDraw').classList.toggle('on', drawActive);
+  document.getElementById('btnDraw').textContent = drawActive ? '🖊 關閉' : '🖊 開啟';
+  document.getElementById('btnErase').classList.remove('on');
+}
+
+function toggleErase() {
+  if (!drawActive) toggleDraw();
+  eraseMode = !eraseMode;
+  document.getElementById('btnErase').classList.toggle('on', eraseMode);
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function setColor(el) {
+  drawColor = el.dataset.color;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  eraseMode = false;
+  document.getElementById('btnErase').classList.remove('on');
+}
+
+function setSize(el) {
+  drawSize = parseInt(el.dataset.sz);
+  document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+canvas.addEventListener('mousemove', e => {
+  dot.style.left = e.clientX + 'px';
+  dot.style.top = e.clientY + 'px';
+  dot.style.width = dot.style.height = (drawSize * 2 + 4) + 'px';
+  dot.style.borderColor = drawColor;
+  if (!painting) return;
+  ctx.globalCompositeOperation = eraseMode ? 'destination-out' : 'source-over';
+  ctx.lineWidth = eraseMode ? drawSize * 3 : drawSize;
+  ctx.strokeStyle = drawColor;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(e.clientX, e.clientY);
+  ctx.stroke();
+  lastX = e.clientX; lastY = e.clientY;
+});
+
+canvas.addEventListener('mousedown', e => {
+  painting = true;
+  lastX = e.clientX; lastY = e.clientY;
+  ctx.globalCompositeOperation = eraseMode ? 'destination-out' : 'source-over';
+  ctx.beginPath();
+  ctx.arc(e.clientX, e.clientY, (eraseMode ? drawSize*1.5 : drawSize/2), 0, Math.PI*2);
+  ctx.fillStyle = drawColor;
+  ctx.fill();
+});
+
+canvas.addEventListener('mouseup', () => painting = false);
+canvas.addEventListener('mouseleave', () => painting = false);
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+selectTopic(0);
+</script>
+</body>
+</html>
