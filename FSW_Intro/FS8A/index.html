@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FS8A 飛行軟體簡介 教學駕駛艙</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#1C3A1C;--bg2:#254525;--bg3:#2E5E2E;--border:#3A6A3A;
+  --white:#FFFFFF;--dim:#C8C8C8;
+  --yellow:#F5E642;--blue:#A8D8EA;--orange:#FFB347;--green:#98FB98;--red:#FF6B6B;
+  --impact:'Impact','Arial Narrow',sans-serif;
+  --body:'Segoe UI',Calibri,sans-serif;
+}
+body{font-family:var(--body);background:var(--bg);color:var(--white);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HEADER ── */
+header{height:54px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:12px;z-index:100;flex-shrink:0}
+.hdr-title{font-family:var(--impact);font-size:20px;color:var(--yellow);letter-spacing:1px;white-space:nowrap}
+.hdr-title small{font-family:var(--body);font-size:11px;color:var(--dim);font-weight:normal;margin-left:6px}
+.hdr-spacer{flex:1}
+.mode-toggle{display:flex;background:var(--bg3);border-radius:20px;padding:3px;gap:2px}
+.mode-btn{padding:5px 14px;border-radius:17px;border:none;cursor:pointer;font-size:12px;font-weight:bold;transition:all .2s;background:transparent;color:var(--dim)}
+.mode-btn.active{background:var(--yellow);color:var(--bg)}
+.mode-badge{font-size:11px;padding:3px 10px;border-radius:10px;background:var(--bg3);color:var(--dim);white-space:nowrap}
+body.teacher .mode-badge{background:rgba(245,230,66,.12);color:var(--yellow);border:1px solid var(--yellow)}
+
+/* ── LAYOUT ── */
+.main-layout{flex:1;display:flex;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:190px;background:var(--bg2);border-right:2px solid var(--border);display:flex;flex-direction:column;padding:10px 6px;gap:5px;flex-shrink:0;overflow-y:auto}
+.sidebar-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;padding:4px 6px 8px;border-bottom:1px dashed var(--border);margin-bottom:2px}
+.topic-btn{background:transparent;border:1.5px solid var(--border);border-radius:8px;color:var(--white);padding:9px 8px;cursor:pointer;text-align:left;transition:all .2s;width:100%}
+.topic-btn:hover{background:var(--bg3);border-color:var(--white)}
+.topic-btn.active{border-color:var(--yellow);background:rgba(245,230,66,.08)}
+.topic-btn .num{font-family:var(--impact);font-size:18px;color:var(--yellow);display:block;line-height:1;margin-bottom:3px}
+.topic-btn .name{display:block;font-size:13px;font-weight:bold}
+.topic-btn .sub{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+
+/* ── CONTENT ── */
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.tab-bar{height:44px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:flex-end;padding:0 14px;gap:3px;flex-shrink:0}
+.tab-btn{padding:7px 16px;border:1.5px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:transparent;color:var(--dim);cursor:pointer;font-size:12px;font-weight:bold;transition:all .2s}
+.tab-btn:hover{background:var(--bg3);color:var(--white)}
+.tab-btn.active{background:var(--bg);color:var(--yellow);border-color:var(--yellow)}
+.panel-area{flex:1;position:relative;overflow:hidden}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:18px;display:none;background:var(--bg)}
+.panel.active{display:block;animation:fade-in .2s ease}
+#panel-carousel.active{display:flex;flex-direction:column;padding:6px;overflow:hidden}
+@keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+body.teacher .panel{padding-right:264px}
+body.teacher #panel-carousel.active{padding-right:270px}
+
+/* ── CAROUSEL ── */
+.carousel{display:flex;flex-direction:column;height:100%;gap:6px}
+.slide-frame{flex:1;min-height:0;width:100%;background:#000;border:2px solid var(--border);border-radius:4px;overflow:hidden}
+.slide-frame img{width:100%;height:100%;object-fit:contain;display:block}
+.car-controls{display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0}
+.car-btn{background:var(--bg2);border:2px solid var(--border);color:var(--white);width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.car-btn:hover:not(:disabled){border-color:var(--yellow);color:var(--yellow)}
+.car-btn:disabled{opacity:.3;cursor:not-allowed}
+.slide-counter{font-family:var(--impact);font-size:17px;color:var(--yellow);min-width:70px;text-align:center}
+.thumbs{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;flex-shrink:0;justify-content:flex-start}
+.thumbs::-webkit-scrollbar{height:3px}
+.thumb{width:64px;height:36px;flex-shrink:0;border:2px solid var(--border);border-radius:3px;cursor:pointer;object-fit:cover;opacity:.55;transition:all .2s}
+.thumb:hover{opacity:.9;border-color:var(--white)}
+.thumb.active{opacity:1;border-color:var(--yellow)}
+
+/* ── QUIZ ── */
+.quiz-wrap{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.q-card{background:var(--bg2);border:2px solid var(--border);border-radius:8px;padding:18px}
+.q-text{font-size:15px;font-weight:bold;margin-bottom:14px;line-height:1.5;color:var(--yellow)}
+.q-num{background:var(--yellow);color:var(--bg);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;margin-right:7px;font-family:var(--impact)}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.opt{background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--white);padding:9px 12px;cursor:pointer;text-align:left;font-size:13px;transition:all .2s;display:flex;align-items:center;gap:7px}
+.opt:hover:not(.locked){border-color:var(--blue);background:rgba(168,216,234,.1)}
+.opt.correct{border-color:var(--green)!important;background:rgba(152,251,152,.15)!important;color:var(--green)}
+.opt.wrong{border-color:var(--red)!important;background:rgba(255,107,107,.1)!important;color:var(--dim)}
+.opt.picked-ok{border-color:var(--green)!important;background:rgba(152,251,152,.25)!important;font-weight:bold}
+.opt.picked-bad{border-color:var(--red)!important;background:rgba(255,107,107,.2)!important;font-weight:bold}
+.opt-l{font-family:var(--impact);font-size:15px;min-width:18px}
+.q-fb{margin-top:10px;padding:9px 12px;border-radius:6px;font-size:12px;display:none}
+.q-fb.show{display:block}
+.q-fb.ok{background:rgba(152,251,152,.08);color:var(--green);border:1px solid var(--green)}
+.q-fb.bad{background:rgba(255,107,107,.08);color:var(--red);border:1px solid var(--red)}
+.q-hint{margin-top:8px;padding:8px 11px;background:rgba(245,230,66,.05);border:1px dashed var(--yellow);border-radius:4px;font-size:12px;color:var(--yellow);display:none}
+body.teacher .q-hint{display:block}
+.q-reset{margin-top:7px;background:transparent;border:1px dashed var(--border);color:var(--dim);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px}
+.q-reset:hover{border-color:var(--white);color:var(--white)}
+.quiz-score{background:var(--bg2);border:2px solid var(--yellow);border-radius:8px;padding:16px;text-align:center;margin-top:4px}
+.quiz-score .score-big{font-family:var(--impact);font-size:42px;color:var(--yellow)}
+.quiz-score .score-lbl{font-size:13px;color:var(--dim);margin-top:4px}
+
+/* ── INFOGRAPHIC ── */
+.info-wrap{display:flex;justify-content:center}
+.info-wrap img{max-width:100%;border:2px solid var(--border);border-radius:4px}
+
+/* ── RIGHT FLOAT PANEL ── */
+.float-panel{position:fixed;right:10px;top:64px;width:246px;display:flex;flex-direction:column;gap:7px;z-index:600}
+body.student .float-panel{display:none}
+.tool-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.tool-hdr{background:var(--bg3);padding:7px 11px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;font-weight:bold;user-select:none}
+.tool-hdr:hover{background:var(--border)}
+.tool-hdr .icon{font-size:14px;margin-right:5px}
+.tool-hdr .chevron{transition:transform .2s;font-size:10px}
+.tool-card.collapsed .chevron{transform:rotate(-90deg)}
+.tool-body{padding:10px}
+.tool-card.collapsed .tool-body{display:none}
+
+/* Lottery */
+.lot-names{width:100%;height:66px;background:var(--bg);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:5px;font-size:11px;resize:none;font-family:inherit;margin-bottom:7px}
+.lot-result{background:var(--bg);border:2px solid var(--yellow);border-radius:6px;padding:9px;text-align:center;font-family:var(--impact);font-size:22px;color:var(--yellow);min-height:42px;margin-bottom:7px;transition:all .15s}
+.lot-result.spin{color:var(--orange)}
+.lot-btn{width:100%;background:var(--yellow);color:var(--bg);border:none;border-radius:6px;padding:7px;font-size:13px;font-weight:bold;cursor:pointer}
+.lot-btn:hover{opacity:.85}
+
+/* Timer */
+.timer-disp{font-family:var(--impact);font-size:38px;color:var(--yellow);text-align:center;padding:6px 0;letter-spacing:3px}
+.timer-disp.urgent{color:var(--red);animation:blink .5s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.presets{display:flex;gap:3px;margin-bottom:7px;flex-wrap:wrap}
+.preset{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:4px 2px;font-size:10px;cursor:pointer;white-space:nowrap}
+.preset:hover{border-color:var(--yellow)}
+.t-btns{display:flex;gap:3px}
+.t-btn{flex:1;padding:6px 3px;border-radius:4px;border:1px solid var(--border);color:var(--white);font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3)}
+.t-btn.go{border-color:var(--green);color:var(--green)}
+.t-btn.stop{border-color:var(--orange);color:var(--orange)}
+.t-btn.rst{border-color:var(--dim);color:var(--dim)}
+.t-btn:hover{background:var(--border)}
+
+/* Drawing */
+.draw-colors{display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;align-items:center}
+.swatch{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;flex-shrink:0}
+.swatch.active{border-color:var(--white);transform:scale(1.2)}
+.draw-sizes{display:flex;gap:3px;margin-bottom:7px}
+.sz-btn{background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px;flex:1}
+.sz-btn.active{border-color:var(--yellow);color:var(--yellow)}
+.draw-acts{display:flex;gap:3px}
+.draw-act{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:5px 3px;cursor:pointer;font-size:10px;text-align:center}
+.draw-act.on{border-color:var(--green);background:rgba(152,251,152,.1);color:var(--green)}
+.draw-act.erase{border-color:var(--orange)}
+.draw-act.clr{border-color:var(--red)}
+.draw-act:hover{border-color:var(--white)}
+
+/* Canvas */
+#cvs{position:fixed;inset:0;z-index:500;display:none;cursor:none;pointer-events:none}
+#cvs.on{display:block;pointer-events:all}
+.cursor-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.7);position:fixed;pointer-events:none;z-index:600;transform:translate(-50%,-50%);display:none}
+#cvs.on~.cursor-dot{display:block}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body class="teacher">
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <span class="hdr-title">🛰️ FS8A 飛行軟體簡介 <small>FSW Introduction · Flight Software Team</small></span>
+  <span class="hdr-spacer"></span>
+  <span class="mode-badge" id="modeBadge">🎓 教師模式</span>
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="setMode('teacher')">👩‍🏫 教師</button>
+    <button class="mode-btn" onclick="setMode('student')">🧑‍💻 學生</button>
+  </div>
+</header>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<div class="main-layout">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sidebar-lbl">📚 教學重點</div>
+    <button class="topic-btn active" onclick="selectTopic(0)">
+      <span class="num">01</span>
+      <span class="name">FSW 簡介與架構</span>
+      <span class="sub">何謂FSW · CSCI · 三層架構</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(1)">
+      <span class="num">02</span>
+      <span class="name">服務層功能</span>
+      <span class="sub">TC · TM · 監控 · 時間 · 事件</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(2)">
+      <span class="num">03</span>
+      <span class="name">核心層與RTOS</span>
+      <span class="sub">RTOS · Code Patch · HW IO</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(3)">
+      <span class="num">04</span>
+      <span class="name">應用軟體管理</span>
+      <span class="sub">AOCS · EPS · TCS · PAYLOAD · SYS</span>
+    </button>
+  </div>
+
+  <!-- ── CONTENT AREA ── -->
+  <div class="content-area">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="selectTab('carousel')">📽 簡報輪播</button>
+      <button class="tab-btn" onclick="selectTab('quiz')">✏️ 互動評量</button>
+      <button class="tab-btn" onclick="selectTab('info')">🖼 資訊圖表</button>
+    </div>
+    <div class="panel-area">
+
+      <!-- CAROUSEL PANEL -->
+      <div class="panel active" id="panel-carousel">
+        <div class="carousel">
+          <div class="slide-frame">
+            <img id="slideImg" src="" alt="slide">
+          </div>
+          <div class="car-controls">
+            <button class="car-btn" id="btnPrev" onclick="changeSlide(-1)">◀</button>
+            <span class="slide-counter" id="slideCounter">1 / 4</span>
+            <button class="car-btn" id="btnNext" onclick="changeSlide(1)">▶</button>
+          </div>
+          <div class="thumbs" id="thumbsContainer"></div>
+        </div>
+      </div>
+
+      <!-- QUIZ PANEL -->
+      <div class="panel" id="panel-quiz">
+        <div class="quiz-wrap" id="quizContainer"></div>
+      </div>
+
+      <!-- INFOGRAPHIC PANEL -->
+      <div class="panel" id="panel-info">
+        <div class="info-wrap">
+          <img id="infoImg" src="" alt="infographic">
+        </div>
+      </div>
+
+    </div><!-- panel-area -->
+  </div><!-- content-area -->
+</div><!-- main-layout -->
+
+<!-- ════════════════ FLOAT PANEL ════════════════ -->
+<div class="float-panel">
+
+  <!-- ⏱ 計時器 -->
+  <div class="tool-card" id="cardTimer">
+    <div class="tool-hdr" onclick="toggleCard('cardTimer')">
+      <span><span class="icon">⏱</span>計時器</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <div class="timer-disp" id="timerDisp">05:00</div>
+      <div class="presets">
+        <button class="preset" onclick="setTimer(60)">1分</button>
+        <button class="preset" onclick="setTimer(180)">3分</button>
+        <button class="preset" onclick="setTimer(300)">5分</button>
+        <button class="preset" onclick="setTimer(600)">10分</button>
+      </div>
+      <div class="t-btns">
+        <button class="t-btn go" onclick="startTimer()">▶ 開始</button>
+        <button class="t-btn stop" onclick="pauseTimer()">⏸ 暫停</button>
+        <button class="t-btn rst" onclick="resetTimer()">↺ 重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎰 隨機點名 -->
+  <div class="tool-card" id="cardLot">
+    <div class="tool-hdr" onclick="toggleCard('cardLot')">
+      <span><span class="icon">🎰</span>隨機點名</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <textarea class="lot-names" id="lotNames" placeholder="每行一個姓名&#10;小明&#10;小華&#10;小美"></textarea>
+      <div class="lot-result" id="lotResult">—</div>
+      <button class="lot-btn" onclick="drawLottery()">🎲 抽籤！</button>
+    </div>
+  </div>
+
+  <!-- ✏️ 畫筆 -->
+  <div class="tool-card" id="cardDraw">
+    <div class="tool-hdr" onclick="toggleCard('cardDraw')">
+      <span><span class="icon">✏️</span>粉筆畫筆</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <div class="draw-colors" id="colorPicker">
+        <span class="swatch active" style="background:#FFFFFF" data-color="#FFFFFF" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#F5E642" data-color="#F5E642" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#A8D8EA" data-color="#A8D8EA" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#FFB347" data-color="#FFB347" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#98FB98" data-color="#98FB98" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#FF6B6B" data-color="#FF6B6B" onclick="setColor(this)"></span>
+      </div>
+      <div class="draw-sizes">
+        <button class="sz-btn" data-sz="3" onclick="setSize(this)">細</button>
+        <button class="sz-btn active" data-sz="6" onclick="setSize(this)">中</button>
+        <button class="sz-btn" data-sz="12" onclick="setSize(this)">粗</button>
+        <button class="sz-btn" data-sz="24" onclick="setSize(this)">超粗</button>
+      </div>
+      <div class="draw-acts">
+        <button class="draw-act" id="btnDraw" onclick="toggleDraw()">🖊 開啟</button>
+        <button class="draw-act erase" id="btnErase" onclick="toggleErase()">橡皮擦</button>
+        <button class="draw-act clr" onclick="clearCanvas()">清除</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- float-panel -->
+
+<!-- ════════════════ CANVAS OVERLAY ════════════════ -->
+<canvas id="cvs"></canvas>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  BASE URL — works for both file:// and HTTP
+// ════════════════════════════════════════════
+const BASE = (() => {
+  const href = window.location.href;
+  if (href.startsWith('file://')) return href.replace(/[^/\\]*$/, '');
+  return '';
+})();
+
+function imgSrc(filename) { return BASE + filename; }
+
+// ════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════
+const TOPICS = [
+  {
+    label: 'FSW 簡介與架構',
+    slides: [1, 2, 3, 4],
+    infographic: 'infographic_01_architecture_20260518_062551.png',
+    quiz: [
+      {
+        q: '飛行軟體 (FSW) 在衛星上扮演什麼角色？',
+        opts: ['單純的通訊中繼器', '衛星的神經中樞與大腦', '僅控制太陽能板充電', '地面站遙控軟體'],
+        ans: 1,
+        hint: '教師提示：FSW 在衛星電腦運行，統籌所有次系統（熱控、電力、姿態、通訊）的協調與控制',
+        fb: '✅ 正確！FSW 是衛星的神經中樞，相當於衛星的大腦，負責所有功能的規劃與執行。'
+      },
+      {
+        q: 'MicroSat FSW CSCI 共有幾個 CSC 模組？',
+        opts: ['5 個', '6 個', '7 個', '8 個'],
+        ans: 2,
+        hint: '教師提示：EXECUTIVE / HW_IF / SERVICE / AOCS / PLATFORM / PAYLOAD / SYSTEM，共 7 個 CSC',
+        fb: '✅ 正確！7 個 CSC 分別負責執行控制、硬體介面、服務、姿態控制、平台、酬載、系統管理。'
+      },
+      {
+        q: '飛行軟體三層架構中，最底層（核心層）的主要功能是？',
+        opts: ['管理任務酬載操作', '提供高階服務程式（TC/TM）', '提供低階軟硬體架構相關功能', '控制衛星姿態與軌道'],
+        ans: 2,
+        hint: '教師提示：核心層 (Kernel Layer) 包含 RTOS 與 HW_IF，提供最底層的軟硬體介面',
+        fb: '✅ 正確！核心層提供與軟硬體架構相關的低階服務，是整個 FSW 的基礎。'
+      }
+    ]
+  },
+  {
+    label: '服務層功能',
+    slides: [5, 6],
+    infographic: 'infographic_02_tc_tm_20260518_062553.png',
+    quiz: [
+      {
+        q: '以下哪種指令類型屬於 Telecommand (TC)？',
+        opts: ['Real Time Telemetry', 'Playback Telemetry', 'Time Tag Command', 'ARO Telemetry'],
+        ans: 2,
+        hint: '教師提示：TC 類型包含 Real Time / Time Tag / MPQ / Geo Command；TM 類型為 Real Time / Playback / ARO',
+        fb: '✅ 正確！Time Tag Command 是預排在特定時間點執行的指令，屬於 TC 範疇。'
+      },
+      {
+        q: 'FDIR 監控服務的三個步驟依序為？',
+        opts: ['偵測→回復→隔離', '隔離→偵測→回復', '偵測→隔離→回復', '回復→偵測→隔離'],
+        ans: 2,
+        hint: '教師提示：Failure Detection → Failure Isolation → Failure Recovery，簡稱 FDIR',
+        fb: '✅ 正確！先偵測錯誤，再隔離故障元件，最後執行回復動作，防止錯誤擴散。'
+      },
+      {
+        q: '衛星星上時間 OBT 的起算基準為？',
+        opts: ['2000/1/1 00:00:00 UTC', '1970/1/1 00:00:00 Unix', '1980/1/6 00:00:00 GPS', '1958/1/1 00:00:00 TAI'],
+        ans: 2,
+        hint: '教師提示：OBT 基於 GPS 時間，從 1980/1/6 00:00:00 開始計算 Week Number',
+        fb: '✅ 正確！GPS 時間從 1980 年 1 月 6 日起算，衛星 OBT 使用 Week Number + Week Second 格式。'
+      }
+    ]
+  },
+  {
+    label: '核心層與RTOS',
+    slides: [7, 8],
+    infographic: 'infographic_03_rtos_codepatch_20260518_062603.png',
+    quiz: [
+      {
+        q: 'FS8A 衛星電腦使用的處理器與作業系統組合為？',
+        opts: ['ARM + FreeRTOS', 'LEON3 + RTEMS', 'x86 + VxWorks', 'PowerPC + LynxOS'],
+        ans: 1,
+        hint: '教師提示：LEON3 是航太常用的抗輻射處理器，RTEMS 為即時多工作業系統',
+        fb: '✅ 正確！LEON3 + RTEMS 是航太電腦的成熟組合，具備高可靠性與即時性。'
+      },
+      {
+        q: 'Code Patch 功能的主要用途是？',
+        opts: ['提升衛星影像解析度', '衛星發射後修改飛行軟體', '更新地面站控制程式', '校正衛星軌道參數'],
+        ans: 1,
+        hint: '教師提示：Code Patch 允許將新映像檔上傳至衛星，覆寫需要修正的程式碼區域',
+        fb: '✅ 正確！Code Patch 是衛星在軌維護的重要機制，無需重新發射即可修復軟體問題。'
+      },
+      {
+        q: 'RTOS 任務循環中，RTC (Real Time Clock) 的作用是？',
+        opts: ['儲存遙測資料', '定義每個任務執行週期的時間基準', '控制太陽能板轉向', '管理地面站通訊窗口'],
+        ans: 1,
+        hint: '教師提示：RTC n → Cyclic Tasks → RTC n+1，RTC 是所有任務排程的時間基準',
+        fb: '✅ 正確！RTC 提供精確的時間基準，確保所有任務依正確頻率週期性執行。'
+      }
+    ]
+  },
+  {
+    label: '應用軟體管理',
+    slides: [9, 10],
+    infographic: 'infographic_04_system_mode_20260518_062606.png',
+    quiz: [
+      {
+        q: 'AOCS Management 負責管理哪些功能？',
+        opts: ['電池充電與電力分配', '溫度感測與加熱器控制', '姿態軌道控制與感測器管理', '酬載影像拍攝排程'],
+        ans: 2,
+        hint: '教師提示：AOCS Management 管理姿態估測、軌道計算、感測器/致動器資料處理，以及 AOCS FDIR',
+        fb: '✅ 正確！AOCS Management 是飛行軟體中最複雜的模組，涵蓋所有姿態與軌道控制功能。'
+      },
+      {
+        q: '衛星進入 SYS_SAFE 模式後，會自動開啟什麼功能？',
+        opts: ['影像拍攝任務', 'TT&C 通聯功能', '軌道控制推進', 'X-band 資料下傳'],
+        ans: 1,
+        hint: '教師提示：SYS_SAFE 是衛星生存模式，自動開啟 TT&C 確保地面可與衛星通訊',
+        fb: '✅ 正確！SYS_SAFE 為衛星預設生存模式，自動啟動 TT&C 保持與地面的通訊連線。'
+      },
+      {
+        q: '衛星系統模式 SYS_NORMAL 的主要用途是？',
+        opts: ['地面整測專用模式', '衛星生存保護模式', '任務酬載操作飛行模式', '軌道機動推進模式'],
+        ans: 2,
+        hint: '教師提示：SYS_NORMAL 為正常任務操作模式，AOCS 進入 NM 模式，開始執行酬載任務',
+        fb: '✅ 正確！SYS_NORMAL 是正常任務飛行模式，衛星在此模式下執行影像拍攝等酬載操作。'
+      }
+    ]
+  }
+];
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let currentTopic = 0;
+let currentSlideIdx = 0;
+let currentTab = 'carousel';
+let quizState = {};
+let drawActive = false;
+let eraseMode = false;
+let drawColor = '#FFFFFF';
+let drawSize = 6;
+let painting = false;
+let lastX = 0, lastY = 0;
+let timerSec = 300;
+let timerRemain = 300;
+let timerInterval = null;
+let lotSpinInterval = null;
+
+// ════════════════════════════════════════════
+//  MODE
+// ════════════════════════════════════════════
+function setMode(m) {
+  document.body.className = m;
+  document.getElementById('modeBadge').textContent = m === 'teacher' ? '🎓 教師模式' : '🧑‍💻 學生模式';
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&m==='teacher')||(i===1&&m==='student')));
+  if (drawActive && m === 'student') toggleDraw();
+}
+
+// ════════════════════════════════════════════
+//  TOPICS & TABS
+// ════════════════════════════════════════════
+function selectTopic(idx) {
+  currentTopic = idx;
+  currentSlideIdx = 0;
+  document.querySelectorAll('.topic-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  updateCarousel();
+  updateInfographic();
+  renderQuiz();
+  selectTab(currentTab);
+}
+
+function selectTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick="selectTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// ════════════════════════════════════════════
+//  CAROUSEL
+// ════════════════════════════════════════════
+function updateCarousel() {
+  const t = TOPICS[currentTopic];
+  const slides = t.slides;
+  const si = currentSlideIdx;
+
+  document.getElementById('slideImg').src = imgSrc(`slide_${String(slides[si]).padStart(2,'0')}.png`);
+  document.getElementById('slideCounter').textContent = `${si+1} / ${slides.length}`;
+  document.getElementById('btnPrev').disabled = si === 0;
+  document.getElementById('btnNext').disabled = si === slides.length - 1;
+
+  const tc = document.getElementById('thumbsContainer');
+  tc.innerHTML = '';
+  slides.forEach((sNum, i) => {
+    const img = document.createElement('img');
+    img.className = 'thumb' + (i === si ? ' active' : '');
+    img.src = imgSrc(`slide_${String(sNum).padStart(2,'0')}.png`);
+    img.onclick = () => { currentSlideIdx = i; updateCarousel(); };
+    tc.appendChild(img);
+  });
+}
+
+function changeSlide(dir) {
+  const t = TOPICS[currentTopic];
+  currentSlideIdx = Math.max(0, Math.min(t.slides.length - 1, currentSlideIdx + dir));
+  updateCarousel();
+}
+
+document.addEventListener('keydown', e => {
+  if (drawActive) return;
+  if (currentTab === 'carousel') {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  }
+});
+
+// ════════════════════════════════════════════
+//  INFOGRAPHIC
+// ════════════════════════════════════════════
+function updateInfographic() {
+  document.getElementById('infoImg').src = imgSrc(TOPICS[currentTopic].infographic);
+}
+
+// ════════════════════════════════════════════
+//  QUIZ
+// ════════════════════════════════════════════
+function renderQuiz() {
+  const t = TOPICS[currentTopic];
+  const container = document.getElementById('quizContainer');
+  container.innerHTML = '';
+
+  if (!quizState[currentTopic]) quizState[currentTopic] = Array(t.quiz.length).fill(null);
+
+  t.quiz.forEach((q, qi) => {
+    const answered = quizState[currentTopic][qi];
+    const card = document.createElement('div');
+    card.className = 'q-card';
+
+    const letters = ['A','B','C','D'];
+    let optsHtml = q.opts.map((o, oi) => {
+      let cls = 'opt';
+      if (answered !== null) {
+        cls += ' locked';
+        if (oi === q.ans) cls += ' correct';
+        else if (oi === answered) cls += ' picked-bad';
+        else cls += ' wrong';
+      }
+      return `<button class="${cls}" onclick="answerQ(${currentTopic},${qi},${oi})">
+        <span class="opt-l">${letters[oi]}</span>${o}
+      </button>`;
+    }).join('');
+
+    let fbCls = 'q-fb', fbTxt = '';
+    if (answered !== null) {
+      if (answered === q.ans) { fbCls += ' ok show'; fbTxt = q.fb; }
+      else { fbCls += ' bad show'; fbTxt = `❌ 答案是 ${letters[q.ans]}：${q.opts[q.ans]}`; }
+    }
+
+    card.innerHTML = `
+      <div class="q-text"><span class="q-num">${qi+1}</span>${q.q}</div>
+      <div class="q-opts">${optsHtml}</div>
+      <div class="${fbCls}">${fbTxt}</div>
+      <div class="q-hint">💡 ${q.hint}</div>
+      ${answered!==null ? `<button class="q-reset" onclick="resetQ(${currentTopic},${qi})">重置此題</button>` : ''}
+    `;
+    card.querySelectorAll('.q-hint').forEach(el => el.remove());
+    container.appendChild(card);
+  });
+
+  const all = quizState[currentTopic];
+  if (all.every(a => a !== null)) {
+    const score = all.filter((a,i) => a === t.quiz[i].ans).length;
+    const div = document.createElement('div');
+    div.className = 'quiz-score';
+    div.innerHTML = `<div class="score-big">${score} / ${t.quiz.length}</div>
+      <div class="score-lbl">本章節答對題數</div>`;
+    container.appendChild(div);
+  }
+}
+
+function answerQ(ti, qi, chosen) {
+  if (quizState[ti][qi] !== null) return;
+  quizState[ti][qi] = chosen;
+  renderQuiz();
+}
+
+function resetQ(ti, qi) {
+  quizState[ti][qi] = null;
+  renderQuiz();
+}
+
+// ════════════════════════════════════════════
+//  TOOL CARDS
+// ════════════════════════════════════════════
+function toggleCard(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ════════════════════════════════════════════
+//  LOTTERY
+// ════════════════════════════════════════════
+function drawLottery() {
+  const names = document.getElementById('lotNames').value
+    .split('\n').map(s=>s.trim()).filter(Boolean);
+  if (!names.length) return;
+  const res = document.getElementById('lotResult');
+  let count = 0;
+  if (lotSpinInterval) clearInterval(lotSpinInterval);
+  res.classList.add('spin');
+  lotSpinInterval = setInterval(() => {
+    res.textContent = names[Math.floor(Math.random()*names.length)];
+    count++;
+    if (count > 18) {
+      clearInterval(lotSpinInterval);
+      res.classList.remove('spin');
+      res.textContent = names[Math.floor(Math.random()*names.length)];
+    }
+  }, 80);
+}
+
+// ════════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════════
+function fmtTime(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function setTimer(sec) {
+  pauseTimer();
+  timerSec = sec;
+  timerRemain = sec;
+  const d = document.getElementById('timerDisp');
+  d.textContent = fmtTime(timerRemain);
+  d.classList.remove('urgent');
+}
+
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timerRemain--;
+    const d = document.getElementById('timerDisp');
+    d.textContent = fmtTime(timerRemain);
+    if (timerRemain <= 10) d.classList.add('urgent');
+    if (timerRemain <= 0) { clearInterval(timerInterval); timerInterval = null; }
+  }, 1000);
+}
+
+function pauseTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerRemain = timerSec;
+  const d = document.getElementById('timerDisp');
+  d.textContent = fmtTime(timerRemain);
+  d.classList.remove('urgent');
+}
+
+// ════════════════════════════════════════════
+//  DRAWING
+// ════════════════════════════════════════════
+const canvas = document.getElementById('cvs');
+const ctx = canvas.getContext('2d');
+const dot = document.getElementById('cursorDot');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function toggleDraw() {
+  drawActive = !drawActive;
+  eraseMode = false;
+  canvas.classList.toggle('on', drawActive);
+  document.getElementById('btnDraw').classList.toggle('on', drawActive);
+  document.getElementById('btnDraw').textContent = drawActive ? '🖊 關閉' : '🖊 開啟';
+  document.getElementById('btnErase').classList.remove('on');
+}
+
+function toggleErase() {
+  if (!drawActive) toggleDraw();
+  eraseMode = !eraseMode;
+  document.getElementById('btnErase').classList.toggle('on', eraseMode);
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function setColor(el) {
+  drawColor = el.dataset.color;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  eraseMode = false;
+  document.getElementById('btnErase').classList.remove('on');
+}
+
+function setSize(el) {
+  drawSize = parseInt(el.dataset.sz);
+  document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+canvas.addEventListener('mousemove', e => {
+  dot.style.left = e.clientX + 'px';
+  dot.style.top = e.clientY + 'px';
+  dot.style.width = dot.style.height = (drawSize * 2 + 4) + 'px';
+  dot.style.borderColor = drawColor;
+  if (!painting) return;
+  ctx.globalCompositeOperation = eraseMode ? 'destination-out' : 'source-over';
+  ctx.lineWidth = eraseMode ? drawSize * 3 : drawSize;
+  ctx.strokeStyle = drawColor;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(e.clientX, e.clientY);
+  ctx.stroke();
+  lastX = e.clientX; lastY = e.clientY;
+});
+
+canvas.addEventListener('mousedown', e => {
+  painting = true;
+  lastX = e.clientX; lastY = e.clientY;
+  ctx.globalCompositeOperation = eraseMode ? 'destination-out' : 'source-over';
+  ctx.beginPath();
+  ctx.arc(e.clientX, e.clientY, (eraseMode ? drawSize*1.5 : drawSize/2), 0, Math.PI*2);
+  ctx.fillStyle = drawColor;
+  ctx.fill();
+});
+
+canvas.addEventListener('mouseup', () => painting = false);
+canvas.addEventListener('mouseleave', () => painting = false);
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+selectTopic(0);
+</script>
+</body>
+</html>

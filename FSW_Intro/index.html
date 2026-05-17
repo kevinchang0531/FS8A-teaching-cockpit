@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TASA FS-8 飛行操作訓練中心</title>
+<title>福衛八號 飛行軟體簡介 訓練中心</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -14,7 +14,10 @@
 }
 body{font-family:'Segoe UI',Calibri,sans-serif;background:var(--bg);color:var(--white);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
 
-.frame{width:100%;max-width:960px;border:2px dashed var(--border);border-radius:6px;padding:40px 48px;position:relative}
+.frame{width:100%;max-width:900px;border:2px dashed var(--border);border-radius:6px;padding:40px 48px;position:relative}
+
+.back{font-size:12px;color:var(--dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:28px;transition:color .2s}
+.back:hover{color:var(--yellow)}
 
 .logo{font-family:var(--impact);font-size:13px;color:var(--dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px}
 h1{font-family:var(--impact);font-size:48px;color:var(--white);line-height:1.1;margin-bottom:6px}
@@ -25,21 +28,19 @@ h1 span{color:var(--yellow)}
 
 .section-lbl{font-family:var(--impact);font-size:13px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
 
-/* subject grid — wider cards for subject level */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:48px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:48px}
 
 .card{background:var(--bg2);border:2px solid var(--border);border-radius:10px;padding:24px 22px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;transition:all .2s;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.03) 0%,transparent 60%)}
 .card:hover{border-color:var(--yellow);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.card.coming-soon{opacity:.45;cursor:not-allowed;pointer-events:none}
+.card.coming-soon{opacity:.5;cursor:not-allowed;pointer-events:none}
 
 .card-badge{font-family:var(--impact);font-size:11px;letter-spacing:2px;padding:3px 10px;border-radius:20px;width:fit-content}
 .badge-live{background:rgba(152,251,152,.15);color:var(--green);border:1px solid rgba(152,251,152,.4)}
 .badge-soon{background:rgba(200,200,200,.08);color:var(--dim);border:1px solid rgba(200,200,200,.2)}
 
-.card-code{font-family:var(--impact);font-size:32px;color:var(--yellow);line-height:1;letter-spacing:1px}
-.card-title{font-size:17px;font-weight:bold;line-height:1.3}
-.card-en{font-size:11px;color:var(--blue);letter-spacing:.5px;margin-top:-4px}
+.card-num{font-family:var(--impact);font-size:36px;color:var(--yellow);line-height:1}
+.card-title{font-size:18px;font-weight:bold;line-height:1.3}
 .card-sub{font-size:12px;color:var(--dim);line-height:1.6}
 
 .card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
@@ -58,39 +59,24 @@ footer a:hover{color:var(--yellow)}
 
 <div class="frame">
 
-  <div class="logo">TASA · FS-8 衛星計畫</div>
-  <h1>飛行操作<br><span>訓練中心</span></h1>
-  <p class="subtitle">FS-8 Flight Operation Training · Interactive Teaching Cockpit</p>
+  <a class="back" href="../">← 返回訓練中心</a>
+
+  <div class="logo">TASA · 系工組 · FSW Team</div>
+  <h1>飛行軟體<br><span>簡介課程</span></h1>
+  <p class="subtitle">FSW Introduction · Flight Software Team · 教學駕駛艙</p>
 
   <div class="divider"></div>
 
-  <div class="section-lbl">📡 訓練科目</div>
+  <div class="section-lbl">📡 可用駕駛艙</div>
 
   <div class="grid">
 
-    <!-- EDI -->
-    <a class="card" href="EDI/">
+    <!-- FS8A -->
+    <a class="card" href="FS8A/">
       <span class="card-badge badge-live">● 已上線</span>
-      <div class="card-code">EDI</div>
-      <div class="card-title">電機介面設計</div>
-      <div class="card-en">Electrical Design Interface</div>
-      <div class="card-sub">計畫管理 · 衛星電機系統<br>FS-8A · FS-8B</div>
-      <div class="card-tags">
-        <span class="tag">計畫實施</span>
-        <span class="tag">系統需求</span>
-        <span class="tag">衛星構型</span>
-        <span class="tag">電機介面</span>
-      </div>
-      <span class="card-arrow">→</span>
-    </a>
-
-    <!-- FSW_Intro -->
-    <a class="card" href="FSW_Intro/">
-      <span class="card-badge badge-live">● 已上線</span>
-      <div class="card-code">FSW</div>
-      <div class="card-title">飛行軟體簡介</div>
-      <div class="card-en">Flight Software Introduction</div>
-      <div class="card-sub">FSW 架構 · 服務層 · RTOS · 應用軟體<br>FS-8A · FSW Team</div>
+      <div class="card-num">8A</div>
+      <div class="card-title">FS-8A 飛行軟體簡介</div>
+      <div class="card-sub">FSW 架構 · 服務層 · RTOS<br>2026/05/18 · FSW Team</div>
       <div class="card-tags">
         <span class="tag">FSW 架構</span>
         <span class="tag">TC/TM</span>
@@ -100,41 +86,16 @@ footer a:hover{color:var(--yellow)}
       <span class="card-arrow">→</span>
     </a>
 
-    <!-- AOCS -->
+    <!-- FS8B placeholder -->
     <div class="card coming-soon">
       <span class="card-badge badge-soon">○ 即將上線</span>
-      <div class="card-code" style="color:var(--dim)">AOCS</div>
-      <div class="card-title" style="color:var(--dim)">姿態與軌道控制</div>
-      <div class="card-en" style="color:var(--dim)">Attitude & Orbit Control System</div>
+      <div class="card-num" style="color:var(--dim)">8B</div>
+      <div class="card-title" style="color:var(--dim)">FS-8B 飛行軟體簡介</div>
       <div class="card-sub">預計 2026 年</div>
-      <div class="card-tags"><span class="tag">待更新</span></div>
-    </div>
-
-    <!-- TTC -->
-    <div class="card coming-soon">
-      <span class="card-badge badge-soon">○ 即將上線</span>
-      <div class="card-code" style="color:var(--dim)">TTC</div>
-      <div class="card-title" style="color:var(--dim)">遙控遙測通訊</div>
-      <div class="card-en" style="color:var(--dim)">Telemetry, Tracking & Command</div>
-      <div class="card-sub">預計 2026 年</div>
-      <div class="card-tags"><span class="tag">待更新</span></div>
-    </div>
-
-    <!-- SAT -->
-    <a class="card" href="SAT/">
-      <span class="card-badge badge-live">● 已上線</span>
-      <div class="card-code">SAT</div>
-      <div class="card-title">系統驗收測試</div>
-      <div class="card-en">System Acceptance Test</div>
-      <div class="card-sub">SOCC 次系統驗收 · 介面控制<br>FS-9A</div>
       <div class="card-tags">
-        <span class="tag">任務概述</span>
-        <span class="tag">SOCC次系統</span>
-        <span class="tag">S/X頻段介面</span>
-        <span class="tag">IADT驗收</span>
+        <span class="tag">待更新</span>
       </div>
-      <span class="card-arrow">→</span>
-    </a>
+    </div>
 
   </div>
 
@@ -142,7 +103,7 @@ footer a:hover{color:var(--yellow)}
 
   <div style="font-size:12px;color:var(--dim);line-height:1.8">
     <span style="color:var(--yellow);font-weight:bold">使用說明</span>
-    點選科目進入教學模式 · 教師模式可使用計時器與粉筆畫筆 · 學生模式隱藏工具面板
+    點選駕駛艙進入教學模式 · 教師模式可使用計時器與粉筆畫筆 · 學生模式隱藏工具面板
   </div>
 
 </div>
