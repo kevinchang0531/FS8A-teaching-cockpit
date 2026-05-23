@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XDS&TTC Operations FS8A 教學駕駛艙</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#1C3A1C;--bg2:#254525;--bg3:#2E5E2E;--border:#3A6A3A;
+  --white:#FFFFFF;--dim:#C8C8C8;
+  --yellow:#F5E642;--blue:#A8D8EA;--orange:#FFB347;--green:#98FB98;--red:#FF6B6B;
+  --impact:'Impact','Arial Narrow',sans-serif;
+  --body:'Segoe UI',Calibri,sans-serif;
+}
+body{font-family:var(--body);background:var(--bg);color:var(--white);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HEADER ── */
+header{height:54px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:12px;z-index:100;flex-shrink:0}
+.hdr-title{font-family:var(--impact);font-size:20px;color:var(--yellow);letter-spacing:1px;white-space:nowrap}
+.hdr-title small{font-family:var(--body);font-size:11px;color:var(--dim);font-weight:normal;margin-left:6px}
+.hdr-spacer{flex:1}
+.mode-toggle{display:flex;background:var(--bg3);border-radius:20px;padding:3px;gap:2px}
+.mode-btn{padding:5px 14px;border-radius:17px;border:none;cursor:pointer;font-size:12px;font-weight:bold;transition:all .2s;background:transparent;color:var(--dim)}
+.mode-btn.active{background:var(--yellow);color:var(--bg)}
+.hdr-vid{background:var(--bg3);border:1px solid var(--blue);color:var(--blue);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.hdr-vid:hover{background:var(--blue);color:var(--bg)}
+.mode-badge{font-size:11px;padding:3px 10px;border-radius:10px;background:var(--bg3);color:var(--dim);white-space:nowrap}
+body.teacher .mode-badge{background:rgba(245,230,66,.12);color:var(--yellow);border:1px solid var(--yellow)}
+
+/* ── LAYOUT ── */
+.main-layout{flex:1;display:flex;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:190px;background:var(--bg2);border-right:2px solid var(--border);display:flex;flex-direction:column;padding:10px 6px;gap:5px;flex-shrink:0;overflow-y:auto}
+.sidebar-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;padding:4px 6px 8px;border-bottom:1px dashed var(--border);margin-bottom:2px}
+.topic-btn{background:transparent;border:1.5px solid var(--border);border-radius:8px;color:var(--white);padding:9px 8px;cursor:pointer;text-align:left;transition:all .2s;width:100%}
+.topic-btn:hover{background:var(--bg3);border-color:var(--white)}
+.topic-btn.active{border-color:var(--yellow);background:rgba(245,230,66,.08)}
+.topic-btn .num{font-family:var(--impact);font-size:18px;color:var(--yellow);display:block;line-height:1;margin-bottom:3px}
+.topic-btn .name{display:block;font-size:13px;font-weight:bold}
+.topic-btn .sub{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+
+/* ── CONTENT ── */
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.tab-bar{height:44px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:flex-end;padding:0 14px;gap:3px;flex-shrink:0}
+.tab-btn{padding:7px 16px;border:1.5px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:transparent;color:var(--dim);cursor:pointer;font-size:12px;font-weight:bold;transition:all .2s}
+.tab-btn:hover{background:var(--bg3);color:var(--white)}
+.tab-btn.active{background:var(--bg);color:var(--yellow);border-color:var(--yellow)}
+.panel-area{flex:1;position:relative;overflow:hidden}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:18px;display:none;background:var(--bg)}
+.panel.active{display:block;animation:fade-in .2s ease}
+#panel-carousel.active{display:flex;flex-direction:column;padding:6px;overflow:hidden}
+@keyframes fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+body.teacher .panel{padding-right:264px}
+body.teacher #panel-carousel.active{padding-right:270px}
+
+/* ── CAROUSEL ── */
+.carousel{display:flex;flex-direction:column;height:100%;gap:6px}
+.slide-frame{flex:1;min-height:0;width:100%;background:#000;border:2px solid var(--border);border-radius:4px;overflow:hidden}
+.slide-frame img{width:100%;height:100%;object-fit:contain;display:block}
+.car-controls{display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0}
+.car-btn{background:var(--bg2);border:2px solid var(--border);color:var(--white);width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.car-btn:hover:not(:disabled){border-color:var(--yellow);color:var(--yellow)}
+.car-btn:disabled{opacity:.3;cursor:not-allowed}
+.slide-counter{font-family:var(--impact);font-size:17px;color:var(--yellow);min-width:70px;text-align:center}
+.thumbs{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;flex-shrink:0;justify-content:flex-start}
+.thumbs::-webkit-scrollbar{height:3px}
+.thumb{width:64px;height:36px;flex-shrink:0;border:2px solid var(--border);border-radius:3px;cursor:pointer;object-fit:cover;opacity:.55;transition:all .2s}
+.thumb:hover{opacity:.9;border-color:var(--white)}
+.thumb.active{opacity:1;border-color:var(--yellow)}
+
+/* ── QUIZ ── */
+.quiz-wrap{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.q-card{background:var(--bg2);border:2px solid var(--border);border-radius:8px;padding:18px}
+.q-text{font-size:15px;font-weight:bold;margin-bottom:14px;line-height:1.5;color:var(--yellow)}
+.q-num{background:var(--yellow);color:var(--bg);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;margin-right:7px;font-family:var(--impact)}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.opt{background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--white);padding:9px 12px;cursor:pointer;text-align:left;font-size:13px;transition:all .2s;display:flex;align-items:center;gap:7px}
+.opt:hover:not(.locked){border-color:var(--blue);background:rgba(168,216,234,.1)}
+.opt.correct{border-color:var(--green)!important;background:rgba(152,251,152,.15)!important;color:var(--green)}
+.opt.wrong{border-color:var(--red)!important;background:rgba(255,107,107,.1)!important;color:var(--dim)}
+.opt.picked-ok{border-color:var(--green)!important;background:rgba(152,251,152,.25)!important;font-weight:bold}
+.opt.picked-bad{border-color:var(--red)!important;background:rgba(255,107,107,.2)!important;font-weight:bold}
+.opt-l{font-family:var(--impact);font-size:15px;min-width:18px}
+.q-fb{margin-top:10px;padding:9px 12px;border-radius:6px;font-size:12px;display:none}
+.q-fb.show{display:block}
+.q-fb.ok{background:rgba(152,251,152,.08);color:var(--green);border:1px solid var(--green)}
+.q-fb.bad{background:rgba(255,107,107,.08);color:var(--red);border:1px solid var(--red)}
+.q-reset{margin-top:7px;background:transparent;border:1px dashed var(--border);color:var(--dim);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px}
+.q-reset:hover{border-color:var(--white);color:var(--white)}
+.quiz-score{background:var(--bg2);border:2px solid var(--yellow);border-radius:8px;padding:16px;text-align:center;margin-top:4px}
+.quiz-score .score-big{font-family:var(--impact);font-size:42px;color:var(--yellow)}
+.quiz-score .score-lbl{font-size:13px;color:var(--dim);margin-top:4px}
+
+/* ── VIDEO ── */
+.video-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.yt-frame-wrap{width:100%;max-width:960px;aspect-ratio:16/9;border:2px solid var(--border);border-radius:6px;overflow:hidden;background:#000}
+.yt-frame-wrap iframe{width:100%;height:100%;border:none;display:block}
+.video-title{font-family:var(--impact);font-size:16px;color:var(--blue);letter-spacing:.5px}
+
+/* ── INFOGRAPHIC ── */
+.info-wrap{display:flex;justify-content:center}
+.info-wrap img{max-width:100%;border:2px solid var(--border);border-radius:4px}
+
+/* ── RIGHT FLOAT PANEL ── */
+.float-panel{position:fixed;right:10px;top:64px;width:246px;display:flex;flex-direction:column;gap:7px;z-index:600}
+body.student .float-panel{display:none}
+.tool-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.tool-hdr{background:var(--bg3);padding:7px 11px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;font-weight:bold;user-select:none}
+.tool-hdr:hover{background:var(--border)}
+.tool-hdr .icon{font-size:14px;margin-right:5px}
+.tool-hdr .chevron{transition:transform .2s;font-size:10px}
+.tool-card.collapsed .chevron{transform:rotate(-90deg)}
+.tool-body{padding:10px}
+.tool-card.collapsed .tool-body{display:none}
+
+/* Timer */
+.timer-disp{font-family:var(--impact);font-size:38px;color:var(--yellow);text-align:center;padding:6px 0;letter-spacing:3px}
+.timer-disp.urgent{color:var(--red);animation:blink .5s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.presets{display:flex;gap:3px;margin-bottom:7px;flex-wrap:wrap}
+.preset{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:4px 2px;font-size:10px;cursor:pointer;white-space:nowrap}
+.preset:hover{border-color:var(--yellow)}
+.t-btns{display:flex;gap:3px}
+.t-btn{flex:1;padding:6px 3px;border-radius:4px;border:1px solid var(--border);color:var(--white);font-size:11px;font-weight:bold;cursor:pointer;background:var(--bg3)}
+.t-btn.go{border-color:var(--green);color:var(--green)}
+.t-btn.stop{border-color:var(--orange);color:var(--orange)}
+.t-btn.rst{border-color:var(--dim);color:var(--dim)}
+.t-btn:hover{background:var(--border)}
+
+/* Drawing */
+.draw-colors{display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;align-items:center}
+.swatch{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;flex-shrink:0}
+.swatch.active{border-color:var(--white);transform:scale(1.2)}
+.draw-sizes{display:flex;gap:3px;margin-bottom:7px}
+.sz-btn{background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px;flex:1}
+.sz-btn.active{border-color:var(--yellow);color:var(--yellow)}
+.draw-acts{display:flex;gap:3px}
+.draw-act{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:4px;padding:5px 3px;cursor:pointer;font-size:10px;text-align:center}
+.draw-act.on{border-color:var(--green);background:rgba(152,251,152,.1);color:var(--green)}
+.draw-act.erase{border-color:var(--orange)}
+.draw-act.clr{border-color:var(--red)}
+.draw-act:hover{border-color:var(--white)}
+
+/* Canvas */
+#cvs{position:fixed;inset:0;z-index:500;display:none;cursor:none;pointer-events:none}
+#cvs.on{display:block;pointer-events:all}
+.cursor-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.7);position:fixed;pointer-events:none;z-index:600;transform:translate(-50%,-50%);display:none}
+#cvs.on~.cursor-dot{display:block}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body class="teacher">
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <span class="hdr-title">📡 XDS &amp; TTC Operations FS8A <small>Flight Operation Training</small></span>
+  <span class="hdr-spacer"></span>
+  <span class="mode-badge" id="modeBadge">🎓 教師模式</span>
+  <div class="mode-toggle">
+    <button class="mode-btn active" onclick="setMode('teacher')">👩‍🏫 教師</button>
+    <button class="mode-btn" onclick="setMode('student')">🧑‍💻 學生</button>
+  </div>
+</header>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<div class="main-layout">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sidebar-lbl">📚 教學重點</div>
+    <button class="topic-btn active" onclick="selectTopic(0)">
+      <span class="num">01</span>
+      <span class="name">TTC 規格與架構</span>
+      <span class="sub">S-band · 頻率 · 路徑切換</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(1)">
+      <span class="num">02</span>
+      <span class="name">TTC 操作程序</span>
+      <span class="sub">指令 · RF Switch · 遙測</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(2)">
+      <span class="num">03</span>
+      <span class="name">XDS 系統架構</span>
+      <span class="sub">X-band · RSI EU · BPF</span>
+    </button>
+    <button class="topic-btn" onclick="selectTopic(3)">
+      <span class="num">04</span>
+      <span class="name">XDS 操作程序</span>
+      <span class="sub">XTx-A On · XTx-B On/Off</span>
+    </button>
+  </div>
+
+  <!-- ── CONTENT AREA ── -->
+  <div class="content-area">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="selectTab('carousel')">📽 簡報輪播</button>
+      <button class="tab-btn" onclick="selectTab('quiz')">✏️ 互動評量</button>
+      <button class="tab-btn" onclick="selectTab('info')">🖼 資訊圖表</button>
+      <button class="tab-btn" onclick="selectTab('video')">▶ 影片</button>
+    </div>
+    <div class="panel-area">
+
+      <!-- CAROUSEL PANEL -->
+      <div class="panel active" id="panel-carousel">
+        <div class="carousel">
+          <div class="slide-frame">
+            <img id="slideImg" src="" alt="slide">
+          </div>
+          <div class="car-controls">
+            <button class="car-btn" id="btnPrev" onclick="changeSlide(-1)">◀</button>
+            <span class="slide-counter" id="slideCounter">1 / 1</span>
+            <button class="car-btn" id="btnNext" onclick="changeSlide(1)">▶</button>
+          </div>
+          <div class="thumbs" id="thumbsContainer"></div>
+        </div>
+      </div>
+
+      <!-- QUIZ PANEL -->
+      <div class="panel" id="panel-quiz">
+        <div class="quiz-wrap" id="quizContainer"></div>
+      </div>
+
+      <!-- VIDEO PANEL -->
+      <div class="panel" id="panel-video">
+        <div class="video-wrap">
+          <div class="yt-frame-wrap">
+            <iframe id="ytFrame"
+              src="https://www.youtube.com/embed/fYBrtO-7LPc?rel=0&modestbranding=1&enablejsapi=1"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+          </div>
+          <div class="video-title">▶ 衛星解剖學：福衛八號飛行操作</div>
+        </div>
+      </div>
+
+      <!-- INFOGRAPHIC PANEL -->
+      <div class="panel" id="panel-info">
+        <div class="info-wrap">
+          <img id="infoImg" src="" alt="infographic">
+        </div>
+      </div>
+
+    </div><!-- panel-area -->
+  </div><!-- content-area -->
+</div><!-- main-layout -->
+
+<!-- ════════════════ FLOAT PANEL ════════════════ -->
+<div class="float-panel">
+
+  <!-- ⏱ 計時器 -->
+  <div class="tool-card" id="cardTimer">
+    <div class="tool-hdr" onclick="toggleCard('cardTimer')">
+      <span><span class="icon">⏱</span>計時器</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <div class="timer-disp" id="timerDisp">05:00</div>
+      <div class="presets">
+        <button class="preset" onclick="setTimer(60)">1分</button>
+        <button class="preset" onclick="setTimer(180)">3分</button>
+        <button class="preset" onclick="setTimer(300)">5分</button>
+        <button class="preset" onclick="setTimer(600)">10分</button>
+      </div>
+      <div class="t-btns">
+        <button class="t-btn go" onclick="startTimer()">▶ 開始</button>
+        <button class="t-btn stop" onclick="pauseTimer()">⏸ 暫停</button>
+        <button class="t-btn rst" onclick="resetTimer()">↺ 重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✏️ 畫筆 -->
+  <div class="tool-card" id="cardDraw">
+    <div class="tool-hdr" onclick="toggleCard('cardDraw')">
+      <span><span class="icon">✏️</span>粉筆畫筆</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="tool-body">
+      <div class="draw-colors" id="colorPicker">
+        <span class="swatch active" style="background:#FFFFFF" data-color="#FFFFFF" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#F5E642" data-color="#F5E642" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#A8D8EA" data-color="#A8D8EA" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#FFB347" data-color="#FFB347" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#98FB98" data-color="#98FB98" onclick="setColor(this)"></span>
+        <span class="swatch" style="background:#FF6B6B" data-color="#FF6B6B" onclick="setColor(this)"></span>
+      </div>
+      <div class="draw-sizes">
+        <button class="sz-btn" data-sz="3" onclick="setSize(this)">細</button>
+        <button class="sz-btn active" data-sz="6" onclick="setSize(this)">中</button>
+        <button class="sz-btn" data-sz="12" onclick="setSize(this)">粗</button>
+        <button class="sz-btn" data-sz="24" onclick="setSize(this)">超粗</button>
+      </div>
+      <div class="draw-acts">
+        <button class="draw-act" id="btnDraw" onclick="toggleDraw()">🖊 開啟</button>
+        <button class="draw-act erase" id="btnErase" onclick="toggleErase()">橡皮擦</button>
+        <button class="draw-act clr" onclick="clearCanvas()">清除</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- float-panel -->
+
+<!-- ════════════════ CANVAS OVERLAY ════════════════ -->
+<canvas id="cvs"></canvas>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  BASE URL — works for both file:// and HTTP
+// ════════════════════════════════════════════
+const BASE = (() => {
+  const href = window.location.href;
+  if (href.startsWith('file://')) return href.replace(/[^/\\]*$/, '');
+  return '';
+})();
+function imgSrc(filename) { return BASE + filename; }
+
+// ════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════
+const TOPICS = [
+  {
+    label: 'TTC 規格與架構',
+    slides: [1, 2, 3, 4],
+    infographic: 'infographic_01_ttc_specs_20260523_161441.png',
+    quiz: [
+      {
+        q: 'FS-8A S-band Transmitter 的中心頻率為？',
+        opts: ['1850 MHz', '2215 MHz', '2039.6 MHz', '8200 MHz'],
+        ans: 1,
+        fb: '✅ 正確！S-band Transmitter 中心頻率 2215 MHz；Receiver 為 2039.645833 MHz，兩者不同請特別注意。'
+      },
+      {
+        q: 'Normal Mode (NM) 下行數據率為？',
+        opts: ['50 kbps', '250 kbps', '32 kbps', '2 Mbps'],
+        ans: 3,
+        fb: '✅ 正確！LEO=50 kbps、ASH=250 kbps、NM=2 Mbps，數據率隨任務模式逐步提升。'
+      },
+      {
+        q: 'RF Switch POS1 下，TRxA (710) 連接到哪個 Diplexer？',
+        opts: ['Diplexer A (740)', 'Diplexer B (741)', 'A 與 B 同時', '直連天線，不經 Diplexer'],
+        ans: 0,
+        fb: '✅ 正確！POS1：TRxA→Diplexer A；TRxB→Diplexer B。POS2 則對調交叉連接。'
+      }
+    ]
+  },
+  {
+    label: 'TTC 操作程序',
+    slides: [5, 6],
+    infographic: 'infographic_02_ttc_path_switching_20260523_161536.png',
+    quiz: [
+      {
+        q: '以下哪個指令用於啟用 S-band Transmitter A？',
+        opts: ['ESBTXAON', 'ESBTXAEN', 'ESBTXADS', 'CSTXOFF'],
+        ans: 1,
+        fb: '✅ 正確！ESBTXAEN = Enable（啟用），ESBTXAON = On（開），兩者不同。ESBTXADS = Disable（禁用）。'
+      },
+      {
+        q: '確認 S-band Receiver 信號已鎖定，需查看的遙測點為？',
+        opts: ['SBAND_A_SSPA_TEMP', 'SBAND_A_RXLOCK', 'SBAND_A_RFPOWERINDEX', 'IOC_RRF_PS1_STS'],
+        ans: 1,
+        fb: '✅ 正確！RXLOCK = LOCK 代表接收鏈路正常鎖定。CALOCK 是載波鎖定，TIMLOCK 是時序鎖定，三個都需確認。'
+      },
+      {
+        q: 'BPSK_CALOCK 遙測點代表什麼？',
+        opts: ['載波擷取鎖定', '電池功率位準', '廣播頻道鎖定', '備援電路邏輯'],
+        ans: 0,
+        fb: '✅ 正確！CA = Carrier Acquisition，CALOCK = LOCK 表示已成功鎖定上行載波頻率。'
+      }
+    ]
+  },
+  {
+    label: 'XDS 系統架構',
+    slides: [7],
+    infographic: 'infographic_03_xds_architecture_20260523_161615.png',
+    quiz: [
+      {
+        q: 'OBC 透過哪種介面傳送影像資料給 RSI EU？',
+        opts: ['CAN Bus', 'UART / RS422', 'LVDS', 'SpaceWire'],
+        ans: 2,
+        fb: '✅ 正確！LVDS（Low Voltage Differential Signaling）高速串列介面，適合大量影像資料傳輸。CAN Bus 用於控制指令。'
+      },
+      {
+        q: 'X-band Transmitter A 的元件代號組合為？',
+        opts: ['820 / 850', '860 / 870', '730 / 740', '511 / 610'],
+        ans: 1,
+        fb: '✅ 正確！RSI EU-A = 820/850；X-band Tx A = 860（Cavity BPF）/ 870（Transmitter）。'
+      },
+      {
+        q: 'XDS 架構中，Cavity BPF 的功能是？',
+        opts: ['RF 功率放大', '數位訊號編碼', 'RF 頻率濾波', '天線波束成形'],
+        ans: 2,
+        fb: '✅ 正確！Cavity Band Pass Filter 帶通濾波器，濾除頻帶外雜訊，確保 X-band 下行信號品質。'
+      }
+    ]
+  },
+  {
+    label: 'XDS 操作程序',
+    slides: [8, 9, 10],
+    infographic: 'infographic_04_xds_operations_20260523_161817.png',
+    quiz: [
+      {
+        q: '啟用 XTx-A 傳輸後，XTXA_MAIN_STATE 的遙測值應為？',
+        opts: ['Power Off', 'IdlePower', 'Transmitting', 'Standby'],
+        ans: 2,
+        fb: '✅ 正確！開機後先進 IdlePower，發送 TRANSMISSION_ON_OFF=0x80 後轉為 Transmitting；0x00 則關閉回 IdlePower。'
+      },
+      {
+        q: '設定 XTx-B FPGA 組態所需的指令為？',
+        opts: ['CMD CTXTEBON', 'CMD PXTXFON  XTX_CONF="XTXB"', 'CMD CXTXBRFON', 'CMD CXTXEBOFF'],
+        ans: 1,
+        fb: '✅ 正確！CTXTEBON = 設備開電；PXTXFON = 功能指令設定 FPGA digital & RF 參數，是第二步驟。'
+      },
+      {
+        q: '哪個指令會關閉 XTx-B 的 RF 功率放大器（PA）？',
+        opts: ['CMD CXTXEBOFF', 'CMD CXTXBRFOFF', 'CMD CTXTEBON', 'CMD PXTXFON'],
+        ans: 1,
+        fb: '✅ 正確！CXTXBRFOFF = RF Off（關閉 PA）；CXTXEBOFF = Equipment Off（完全關機），兩步驟有順序。'
+      }
+    ]
+  }
+];
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let currentTopic = 0;
+let currentSlideIdx = 0;
+let currentTab = 'carousel';
+let quizState = {};
+let drawActive = false;
+let eraseMode = false;
+let drawColor = '#FFFFFF';
+let drawSize = 6;
+let painting = false;
+let lastX = 0, lastY = 0;
+let timerSec = 300;
+let timerRemain = 300;
+let timerInterval = null;
+
+// ════════════════════════════════════════════
+//  MODE
+// ════════════════════════════════════════════
+function setMode(m) {
+  document.body.className = m;
+  document.getElementById('modeBadge').textContent = m === 'teacher' ? '🎓 教師模式' : '🧑‍💻 學生模式';
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&m==='teacher')||(i===1&&m==='student')));
+  if (drawActive && m === 'student') toggleDraw();
+}
+
+// ════════════════════════════════════════════
+//  TOPICS & TABS
+// ════════════════════════════════════════════
+function selectTopic(idx) {
+  currentTopic = idx;
+  currentSlideIdx = 0;
+  document.querySelectorAll('.topic-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  updateCarousel();
+  updateInfographic();
+  renderQuiz();
+  selectTab(currentTab);
+}
+
+function selectTab(tab) {
+  currentTab = tab;
+  if (tab !== 'video') {
+    const f = document.getElementById('ytFrame');
+    if (f) f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}','*');
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick="selectTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// ════════════════════════════════════════════
+//  CAROUSEL
+// ════════════════════════════════════════════
+function updateCarousel() {
+  const t = TOPICS[currentTopic];
+  const slides = t.slides;
+  const si = currentSlideIdx;
+
+  document.getElementById('slideImg').src = imgSrc(`slide_${String(slides[si]).padStart(2,'0')}.png`);
+  document.getElementById('slideCounter').textContent = `${si+1} / ${slides.length}`;
+  document.getElementById('btnPrev').disabled = si === 0;
+  document.getElementById('btnNext').disabled = si === slides.length - 1;
+
+  const tc = document.getElementById('thumbsContainer');
+  tc.innerHTML = '';
+  slides.forEach((sNum, i) => {
+    const img = document.createElement('img');
+    img.className = 'thumb' + (i === si ? ' active' : '');
+    img.src = imgSrc(`slide_${String(sNum).padStart(2,'0')}.png`);
+    img.onclick = () => { currentSlideIdx = i; updateCarousel(); };
+    tc.appendChild(img);
+  });
+}
+
+function changeSlide(dir) {
+  const t = TOPICS[currentTopic];
+  currentSlideIdx = Math.max(0, Math.min(t.slides.length - 1, currentSlideIdx + dir));
+  updateCarousel();
+}
+
+document.addEventListener('keydown', e => {
+  if (drawActive) return;
+  if (currentTab === 'carousel') {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  }
+});
+
+// ════════════════════════════════════════════
+//  INFOGRAPHIC
+// ════════════════════════════════════════════
+function updateInfographic() {
+  document.getElementById('infoImg').src = imgSrc(TOPICS[currentTopic].infographic);
+}
+
+// ════════════════════════════════════════════
+//  QUIZ
+// ════════════════════════════════════════════
+function renderQuiz() {
+  const t = TOPICS[currentTopic];
+  const container = document.getElementById('quizContainer');
+  container.innerHTML = '';
+
+  if (!quizState[currentTopic]) quizState[currentTopic] = Array(t.quiz.length).fill(null);
+
+  t.quiz.forEach((q, qi) => {
+    const answered = quizState[currentTopic][qi];
+    const card = document.createElement('div');
+    card.className = 'q-card';
+
+    const letters = ['A','B','C','D'];
+    let optsHtml = q.opts.map((o, oi) => {
+      let cls = 'opt';
+      if (answered !== null) {
+        cls += ' locked';
+        if (oi === q.ans) cls += ' correct';
+        else if (oi === answered) cls += ' picked-bad';
+        else cls += ' wrong';
+      }
+      return `<button class="${cls}" onclick="answerQ(${currentTopic},${qi},${oi})">
+        <span class="opt-l">${letters[oi]}</span>${o}
+      </button>`;
+    }).join('');
+
+    let fbCls = 'q-fb', fbTxt = '';
+    if (answered !== null) {
+      if (answered === q.ans) { fbCls += ' ok show'; fbTxt = q.fb; }
+      else { fbCls += ' bad show'; fbTxt = `❌ 答案是 ${letters[q.ans]}：${q.opts[q.ans]}`; }
+    }
+
+    card.innerHTML = `
+      <div class="q-text"><span class="q-num">${qi+1}</span>${q.q}</div>
+      <div class="q-opts">${optsHtml}</div>
+      <div class="${fbCls}">${fbTxt}</div>
+      ${answered!==null ? `<button class="q-reset" onclick="resetQ(${currentTopic},${qi})">重置此題</button>` : ''}
+    `;
+    container.appendChild(card);
+  });
+
+  const all = quizState[currentTopic];
+  if (all.every(a => a !== null)) {
+    const score = all.filter((a,i) => a === t.quiz[i].ans).length;
+    const div = document.createElement('div');
+    div.className = 'quiz-score';
+    div.innerHTML = `<div class="score-big">${score} / ${t.quiz.length}</div>
+      <div class="score-lbl">本章節答對題數</div>`;
+    container.appendChild(div);
+  }
+}
+
+function answerQ(ti, qi, chosen) {
+  if (quizState[ti][qi] !== null) return;
+  quizState[ti][qi] = chosen;
+  renderQuiz();
+}
+
+function resetQ(ti, qi) {
+  quizState[ti][qi] = null;
+  renderQuiz();
+}
+
+// ════════════════════════════════════════════
+//  TOOL CARDS
+// ════════════════════════════════════════════
+function toggleCard(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ════════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════════
+function fmtTime(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function setTimer(sec) {
+  pauseTimer(); timerSec = sec; timerRemain = sec;
+  const d = document.getElementById('timerDisp');
+  d.textContent = fmtTime(timerRemain); d.classList.remove('urgent');
+}
+function startTimer() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timerRemain--;
+    const d = document.getElementById('timerDisp');
+    d.textContent = fmtTime(timerRemain);
+    if (timerRemain <= 10) d.classList.add('urgent');
+    if (timerRemain <= 0) { clearInterval(timerInterval); timerInterval = null; }
+  }, 1000);
+}
+function pauseTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+function resetTimer() {
+  pauseTimer(); timerRemain = timerSec;
+  const d = document.getElementById('timerDisp');
+  d.textContent = fmtTime(timerRemain); d.classList.remove('urgent');
+}
+
+// ════════════════════════════════════════════
+//  DRAWING
+// ════════════════════════════════════════════
+const canvas = document.getElementById('cvs');
+const ctx = canvas.getContext('2d');
+const dot = document.getElementById('cursorDot');
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function toggleDraw() {
+  drawActive = !drawActive; eraseMode = false;
+  canvas.classList.toggle('on', drawActive);
+  document.getElementById('btnDraw').classList.toggle('on', drawActive);
+  document.getElementById('btnDraw').textContent = drawActive ? '🖊 關閉' : '🖊 開啟';
+  document.getElementById('btnErase').classList.remove('on');
+}
+function toggleErase() {
+  if (!drawActive) toggleDraw();
+  eraseMode = !eraseMode;
+  document.getElementById('btnErase').classList.toggle('on', eraseMode);
+}
+function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+function setColor(el) {
+  drawColor = el.dataset.color;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active'); eraseMode = false;
+  document.getElementById('btnErase').classList.remove('on');
+}
+function setSize(el) {
+  drawSize = parseInt(el.dataset.sz);
+  document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+canvas.addEventListener('mousemove', e => {
+  dot.style.left = e.clientX + 'px'; dot.style.top = e.clientY + 'px';
+  dot.style.width = dot.style.height = (drawSize * 2 + 4) + 'px';
+  dot.style.borderColor = drawColor;
+  if (!painting) return;
+  ctx.globalCompositeOperation = eraseMode ? 'destination-out' : 'source-over';
+  ctx.lineWidth = eraseMode ? drawSize * 3 : drawSize;
+  ctx.strokeStyle = drawColor; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(e.clientX, e.clientY); ctx.stroke();
+  lastX = e.clientX; lastY = e.clientY;
+});
+canvas.addEventListener('mousedown', e => {
+  painting = true; lastX = e.clientX; lastY = e.clientY;
+  ctx.globalCompositeOperation = eraseMode ? 'destination-out' : 'source-over';
+  ctx.beginPath(); ctx.arc(e.clientX, e.clientY, (eraseMode?drawSize*1.5:drawSize/2), 0, Math.PI*2);
+  ctx.fillStyle = drawColor; ctx.fill();
+});
+canvas.addEventListener('mouseup', () => painting = false);
+canvas.addEventListener('mouseleave', () => painting = false);
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+selectTopic(0);
+</script>
+</body>
+</html>
